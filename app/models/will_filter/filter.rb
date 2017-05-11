@@ -921,18 +921,18 @@ module WillFilter
 
     def results
       @results ||= begin
-        handle_empty_filter!
-        recs = model_class.where(sql_conditions).order(order_clause)
+        handle_empty_filter! 
+        recs = model_class.uniq.where(sql_conditions).order(order_clause)
         inner_joins.each do |inner_join|
           recs = recs.joins(association_name(inner_join))
         end
 
         if custom_conditions?
           recs = process_custom_conditions(recs.all)
-          recs = Kaminari.paginate_array(recs)
-        end
+          recs = Kaminari.paginate(:page => page, :per_page => per_page).to_a
+        end  
 
-        recs = recs.page(page).per(per_page)
+        recs = recs.paginate(:page => page, :per_page => per_page).to_a
         recs.wf_filter = self
         recs
       end
